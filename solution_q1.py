@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from math import fsum
 
-# Define a function to determine the result based on conditions
+# Define the BN
 P_B = pd.DataFrame({'B': [1,0],
                     'P': [.001,.999]})
 
