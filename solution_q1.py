@@ -24,12 +24,14 @@ P_A_given_BE = pd.DataFrame({'B': [1,1,1,1,0,0,0,0],
 
 # Create f1(A)
 f1 = pd.DataFrame({'A': [1,0]})
+# Sum out M
 f1['P'] = [sum(P_M_given_A.query(f'A=={a}')['P']) for a in [1,0]]
 print(f1)
 
 # Create f2(B,E,+j)
 f2 = pd.DataFrame({'B': [1,1,0,0],
                    'E': [1,0,1,0]})
+# Sum out A
 f2_P = []
 for b,e in [1,1],[1,0],[0,1],[0,0]:
     sum = 0
@@ -41,6 +43,7 @@ print(f2)
 
 # Create final factor, f3(B,+j)
 f3 = pd.DataFrame({'B': [1,0]})
+# Sum out E
 f3_P = []
 for b in [1,0]:
     sum = 0
