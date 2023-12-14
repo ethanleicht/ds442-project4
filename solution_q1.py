@@ -25,7 +25,7 @@ P_A_given_BE = pd.DataFrame({'B': [1,1,1,1,0,0,0,0],
 f1 = pd.DataFrame({'A': [1,0]})
 # Sum out M
 f1['P'] = [sum(P_M_given_A.query(f'A=={a}')['P']) for a in [1,0]]
-print(f1)
+# print(f1)
 
 # Create f2(+j|B,E)
 f2 = pd.DataFrame({'B': [1,1,0,0],
@@ -38,7 +38,7 @@ for b,e in [1,1],[1,0],[0,1],[0,0]:
         sum += P_A_given_BE.query(f'A=={a} & B=={b} & E=={e}')['P'].item() * P_J_given_A.query(f'J==1 & A=={a}')['P'].item() * f1.query(f'A=={a}')['P'].item()
     f2_P.append(sum)
 f2['P'] = f2_P
-print(f2)
+# print(f2)
 
 # Create final factor, f3(+j|B)
 f3 = pd.DataFrame({'B': [1,0]})
@@ -50,7 +50,7 @@ for b in [1,0]:
         sum += P_E.query(f'E=={e}')['P'].item() * f2.query(f'B=={b} & E=={e}')['P'].item()
     f3_P.append(sum)
 f3['P'] = f3_P
-print(f3)
+# print(f3)
 
 # Normalize
 result = pd.DataFrame({'B': [1,0]})
