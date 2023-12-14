@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from math import fsum
 
@@ -28,7 +27,7 @@ f1 = pd.DataFrame({'A': [1,0]})
 f1['P'] = [sum(P_M_given_A.query(f'A=={a}')['P']) for a in [1,0]]
 print(f1)
 
-# Create f2(B,E,+j)
+# Create f2(+j|B,E)
 f2 = pd.DataFrame({'B': [1,1,0,0],
                    'E': [1,0,1,0]})
 # Sum out A
@@ -36,12 +35,12 @@ f2_P = []
 for b,e in [1,1],[1,0],[0,1],[0,0]:
     sum = 0
     for a in [1,0]:
-        sum += P_A_given_BE.query(f'A=={a} & B=={b} & E=={e}')['P'].item() * P_J_given_A.query(f'A=={a} & J==1')['P'].item() * f1.query(f'A=={a}')['P'].item()
+        sum += P_A_given_BE.query(f'A=={a} & B=={b} & E=={e}')['P'].item() * P_J_given_A.query(f'J==1 & A=={a}')['P'].item() * f1.query(f'A=={a}')['P'].item()
     f2_P.append(sum)
 f2['P'] = f2_P
 print(f2)
 
-# Create final factor, f3(B,+j)
+# Create final factor, f3(+j|B)
 f3 = pd.DataFrame({'B': [1,0]})
 # Sum out E
 f3_P = []
@@ -55,8 +54,8 @@ print(f3)
 
 # Normalize
 result = pd.DataFrame({'B': [1,0]})
-Z = fsum(f3_P)
-result['P(B|+j)'] = [f3.query(f'B=={b}')['P'].item()/Z for b in [1,0]]
+Z = fsum([P_B.query(f'B=={b}')['P'].item() * f3.query(f'B=={b}')['P'].item() for b in [1,0]])
+result['P(B|+j)'] = [P_B.query(f'B=={b}')['P'].item() * f3.query(f'B=={b}')['P'].item() / Z for b in [1,0]]
 
 # Print final result
 print(result)
