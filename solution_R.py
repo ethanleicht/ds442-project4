@@ -1,51 +1,35 @@
-# Given probabilities from the tables in the attachment
-P_B = 0.001  # Probability of Burglary
-P_notB = 0.999  # Probability of not Burglary
-P_E = 0.002  # Probability of Earthquake
-P_notE = 0.998  # Probability of not Earthquake
+import numpy as np
 
-# Conditional probabilities from the tables
-P_A_given_BE = 0.95
-P_A_given_B_notE = 0.94
-P_A_given_notB_E = 0.29
-P_A_given_notB_notE = 0.001
+# The prior probabilities for Burglary (B) and Earthquake (E)
+P_B = np.array([0.001, 0.999])  # [P(+b), P(-b)]
+P_E = np.array([0.002, 0.998])  # [P(+e), P(-e)]
 
-P_J_given_A = 0.9  # Probability of John calling given Alarm
-P_J_given_notA = 0.05  # Probability of John calling given no Alarm
+# The conditional probabilities of Alarm (A) given Burglary (B) and Earthquake (E)
+P_A_given_B_E = np.array([
+    [[0.95, 0.94], [0.29, 0.001]],  # P(A|+b,+e), P(A|+b,-e)
+    [[0.05, 0.06], [0.71, 0.999]]   # P(A|-b,+e), P(A|-b,-e)
+])
 
-# Compute P(Alarm) using total probability
-P_A = (P_A_given_BE * P_B * P_E) + \
-      (P_A_given_B_notE * P_B * P_notE) + \
-      (P_A_given_notB_E * P_notB * P_E) + \
-      (P_A_given_notB_notE * P_notB * P_notE)
+# The conditional probabilities of John calling (J) given Alarm (A)
+P_J_given_A = np.array([
+    [0.9, 0.05],  # P(J|+a), P(J|-a)
+    [0.1, 0.95]   # P(J|+a'), P(J|-a')
+])
 
-# Compute P(John Calls = +j) using total probability
-P_J = (P_J_given_A * P_A) + (P_J_given_notA * (1 - P_A))
+# Compute the full joint probability table P(B,E,A,J)
+P_BEAJ = np.zeros((2, 2, 2, 2))
 
-# Compute P(John Calls = +j | Burglary)
-# This is the total probability of John calling when there is a burglary,
-P_J_given_B = (P_J_given_A * (P_A_given_BE * P_E + P_A_given_B_notE * P_notE)) + \
-              (P_J_given_notA * (1 - (P_A_given_BE * P_E + P_A_given_B_notE * P_notE)))
+# Nested loops to calculate the full joint distribution
+for b in [0, 1]:  # b = 0 for +b, b = 1 for -b
+    for e in [0, 1]:  # e = 0 for +e, e = 1 for -e
+        for a in [0, 1]:  # a = 0 for +a, a = 1 for -a
+            P_BEAJ[b, e, a, :] = P_B[b] * P_E[e] * P_A_given_B_E[a, b, e] * P_J_given_A[:, a]
 
-P_B_given_J = (P_J_given_B * P_B) / P_J
+# Variable elimination: sum out E and A
+P_BJ = np.sum(P_BEAJ, axis=(1, 2))
 
-P_B_given_J
+# Normalize to get P(B|J=j+)
+P_B_given_J = P_BJ[:, 0] / np.sum(P_BJ[:, 0])
 
-# Compute P(John Calls = +j | no Burglary)
-P_J_given_notB = (P_J_given_A * (P_A_given_notB_E * P_E + P_A_given_notB_notE * P_notE)) + \
-                 (P_J_given_notA * (1 - (P_A_given_notB_E * P_E + P_A_given_notB_notE * P_notE)))
-
-# Compute P(no Burglary | John Calls = +j)
-P_notB_given_J = (P_J_given_notB * P_notB) / P_J
-
-# Create the distribution table
-distribution_table = {
-    'Burglary': P_B_given_J,
-    'No Burglary': P_notB_given_J
-}
-
-# Print the distribution table
-for condition, probability in distribution_table.items():
-    print(f"P({condition} | John Calls = +j): {probability:.4f}")
-
-distribution_table
+print(f"(P(Burglary | John Calls = +j)): {P_B_given_J[0]:.5f}")
+print(f"(P(~Burglary | John Calls = +j)): {P_B_given_J[1]:.5f}")
